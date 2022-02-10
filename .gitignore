@@ -1,0 +1,7 @@
+# Build back assets dir
+dist
+
+# Allow for commiting a directory but not its contents
+!**/.keep
+
+node_modules
