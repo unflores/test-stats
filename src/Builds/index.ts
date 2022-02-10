@@ -54,7 +54,7 @@ async function fetchBuildStages(number: number) {
 }
 
 function filterRspecRuntimes(stages: Array<DroneBuildStage>): Array<DroneBuildStage> {
-  return stages.filter(stage => stage.name.search(/backend_unit_tests|backend_request_tests/) != -1)
+  return stages.filter(stage => stage.name.search(new RegExp(process.env.STAGE_NAMES_REGEX)) != -1)
 }
 
 function calculateRuntime(masterBuilds: Array<DroneBuild>) {

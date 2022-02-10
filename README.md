@@ -14,6 +14,7 @@ TOKEN=asdlkfj1234lk
 URL=https://ci.somesite.com
 USER=unflores
 REPO=test-stats
+STAGE_NAMES_REGEX=some_stage|another_stage # There are many stages for a build, you can group multiple testing stages together to get their times
 ```
 
 Run:
