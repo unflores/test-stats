@@ -10,7 +10,7 @@ const client = new drone.Client({
 
 type DroneBuild = {
   id: number,
-  number: number,   // The higher the number the more recent
+  number: number,   // The higher the number the more recent. This is the build number in the url
   repo_id: number,
   source: string,
   target: string,
@@ -44,17 +44,14 @@ type DroneException = {
 // A master build represents a merge to the master branch
 async function fetchMasterBuilds() {
   const droneBuilds: Array<DroneBuild> = await client.getBuilds(process.env.GIT_USER, process.env.REPO)
-  // console.info(droneBuilds)
   const builds = droneBuilds.filter((build) => build.target === 'master')
     .sort((a, b) => a.number - b.number)
-  // logger.info(builds)
   return builds
 }
 
 async function fetchBuildStages(number: number) {
   const { stages: buildStages }: DroneBuildWithStages
     = await client.getBuild(process.env.GIT_USER, process.env.REPO, number)
-  // console.log(buildStages)
   return buildStages
 }
 
