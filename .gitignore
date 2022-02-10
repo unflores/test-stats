@@ -1,3 +1,4 @@
+.env
 # Build back assets dir
 dist
 
