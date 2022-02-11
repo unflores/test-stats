@@ -38,12 +38,30 @@ export type DroneException = {
   config: any
 }
 
+async function fetchPreviousBuildPages(totalBuilds: number) {
+  // Builds appear hardcoded to 25 per page for some reason...
+  const buildsPerPage = 25
+  const pageLimit = totalBuilds / buildsPerPage
+  let droneBuilds: Array<DroneBuild> = []
+  for (let page = 2; page < pageLimit; page++) {
+    let newDroneBuilds = await client.getBuilds(process.env.GIT_USER, process.env.REPO, page)
+
+    if (newDroneBuilds.length === 0) return droneBuilds
+
+    droneBuilds = [...newDroneBuilds, ...droneBuilds]
+  }
+
+  return droneBuilds
+}
 
 // A master build represents a merge to the master branch
 async function fetchMasterBuilds() {
   const droneBuilds: Array<DroneBuild> = await client.getBuilds(process.env.GIT_USER, process.env.REPO)
-  const builds = droneBuilds.filter((build) => build.target === 'master')
-    .sort((a, b) => a.number - b.number)
+  // Assume this is the number of builds
+  const mostRecentId = droneBuilds[0].id
+  const previousDroneBuilds = await fetchPreviousBuildPages(mostRecentId)
+  const builds = [...droneBuilds, ...previousDroneBuilds].filter((build) => build.target === 'master')
+    .sort((a, b) => b.number - a.number)
   return builds
 }
 
@@ -59,10 +77,21 @@ function filterRspecRuntimes(stages: Array<DroneBuildStage>): Array<DroneBuildSt
 
 function calculateRuntime(masterBuilds: Array<DroneBuild>) {
   return (stages: Array<DroneBuildStage>) => {
-    return {
-      buildNumber: masterBuilds.find(masterBuild => masterBuild.id == stages[0].build_id).number,
-      runtime: stages.map(stage => stage.stopped - stage.started)
-        .reduce((partialSum, current) => partialSum + current, 0) / 60
+    // Some stages don't have build ids. I could probably filter out those stages as invalid earlier on, maybe the build itself should be considered invalid...
+    //
+    try {
+      return {
+        buildNumber: masterBuilds.find(masterBuild => masterBuild.id == stages[0].build_id).number,
+        runtimeInMinutes: stages.map(stage => stage.stopped - stage.started)
+          .reduce((partialSum, current) => partialSum + current, 0) / 60
+      }
+    } catch (err) {
+      logger.error(err)
+
+      return {
+        buildNumber: -1,
+        runtime: 0
+      }
     }
   }
 }

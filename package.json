@@ -19,6 +19,6 @@
   },
   "dependencies": {
     "dotenv": "^16.0.0",
-    "drone-node": "^2.1.0"
+    "drone-node": "unflores/drone-node#add-pages-to-builds-query"
   }
 }
