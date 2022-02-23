@@ -22,3 +22,5 @@ STAGE_NAMES_REGEX=some_stage|another_stage # There are many stages for a build, 
 ```
 npx tsc && node dist/index.js
 ```
+
+4. Take generated csv `./runtimes.csv` and make a graph from it

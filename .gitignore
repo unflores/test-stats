@@ -6,3 +6,6 @@ dist
 !**/.keep
 
 node_modules
+
+# Generated runtimes file
+runtimes.csv
