@@ -1,7 +1,6 @@
 const drone = require('drone-node')
 import * as logger from '../../logger'
 import CsvWriter from 'objects-to-csv'
-// const CsvWriter = require('objects-to-csv')
 
 const client = new drone.Client({
   url: process.env.URL,
