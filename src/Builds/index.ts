@@ -1,12 +1,18 @@
 const drone = require('drone-node')
 import * as logger from '../../logger'
+import CsvWriter from 'objects-to-csv'
+// const CsvWriter = require('objects-to-csv')
 
 const client = new drone.Client({
   url: process.env.URL,
   token: process.env.TOKEN
 })
 
+// We use this number as a build id for failed builds
 const BUILD_ERROR = -1
+// Any runtime over 1000 minutes will be seen as having failed
+// even if it completes successfully
+const RUNTIME_THRESHOLD = 300
 
 type DroneBuild = {
   id: number,
@@ -65,6 +71,7 @@ async function fetchMasterBuilds() {
   const previousDroneBuilds = await fetchPreviousBuildPages(mostRecentId)
   const builds = [...droneBuilds, ...previousDroneBuilds].filter((build) => build.target === 'master')
     .sort((a, b) => b.number - a.number)
+  logger.info(`Total Builds to master: ${builds.length}`)
   return builds
 }
 
@@ -109,6 +116,10 @@ export async function calculateRuntimes() {
   const runtimes
     = buildsStages.map(filterRspecRuntimes)
       .map(calculateRuntime(masterBuilds))
-      .filter(runtime => runtime.buildNumber !== BUILD_ERROR || runtime.runtimeInMinutes == 0 || runtime.runtimeInMinutes > 2000)
+      .filter(runtime => runtime.buildNumber !== BUILD_ERROR && runtime.runtimeInMinutes !== 0 && runtime.runtimeInMinutes < RUNTIME_THRESHOLD)
+
+  const writer = new CsvWriter(runtimes)
+  await writer.toDisk('./runtimes.csv')
+  logger.info("Runtimes written to csv")
 
 }
