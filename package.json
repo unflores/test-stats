@@ -7,13 +7,14 @@
     "start": "node ./dist/index.js",
     "build": "npx tsc -d --project ./tsconfig.json",
     "build:watch": "npm run build -w",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^17.0.17",
+    "jest": "^27.5.1",
     "tslint-loader": "^3.5.4",
     "typescript": "^4.5.5"
   },
