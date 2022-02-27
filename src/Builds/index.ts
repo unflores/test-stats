@@ -16,11 +16,11 @@ type Runtime = {
 }
 
 // Returns all stages that match the stage names we are timing
-function filterStages(stages: Array<DroneBuildStage>): Array<DroneBuildStage> {
+function filterSpecifiedStages(stages: Array<DroneBuildStage>): Array<DroneBuildStage> {
   return stages.filter(stage => stage.name.search(new RegExp(process.env.STAGE_NAMES_REGEX)) != -1)
 }
 
-function calculateRuntime(masterBuilds: Array<DroneBuild>) {
+function transformBuildToRuntime(masterBuilds: Array<DroneBuild>) {
   return (stages: Array<DroneBuildStage>): Runtime => {
     // Some stages don't have build ids. I could probably filter out those stages as invalid earlier on, maybe the build itself should be considered invalid...
     //
@@ -41,15 +41,19 @@ function calculateRuntime(masterBuilds: Array<DroneBuild>) {
   }
 }
 
+function removeOutliers(runtime: Runtime): Boolean {
+  return runtime.buildNumber !== BUILD_ERROR && runtime.timeInMinutes !== 0 && runtime.timeInMinutes < RUNTIME_THRESHOLD
+}
+
 export async function calculateRuntimes() {
   const masterBuilds = await ciClient.fetchMasterBuilds()
 
   const stagePromises = masterBuilds.map(build => ciClient.fetchBuildStages(build.number))
   const buildsStages = await Promise.all(stagePromises)
   const runtimes
-    = buildsStages.map(filterStages)
-      .map(calculateRuntime(masterBuilds))
-      .filter(runtime => runtime.buildNumber !== BUILD_ERROR && runtime.timeInMinutes !== 0 && runtime.timeInMinutes < RUNTIME_THRESHOLD)
+    = buildsStages.map(filterSpecifiedStages)
+      .map(transformBuildToRuntime(masterBuilds))
+      .filter(removeOutliers)
 
   const writer = new CsvWriter(runtimes)
   await writer.toDisk('./runtimes.csv')
