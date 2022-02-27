@@ -38,6 +38,11 @@ type DroneBuildWithStages = DroneBuild & {
   stages: Array<DroneBuildStage>
 }
 
+type Runtime = {
+  buildNumber: number,
+  timeInMinutes: number
+}
+
 export type DroneException = {
   message: string,
   name: string,
@@ -82,18 +87,18 @@ async function fetchBuildStages(number: number) {
 }
 
 // Returns all stages that match the stage names we are timing
-function filterRspecRuntimes(stages: Array<DroneBuildStage>): Array<DroneBuildStage> {
+function filterStages(stages: Array<DroneBuildStage>): Array<DroneBuildStage> {
   return stages.filter(stage => stage.name.search(new RegExp(process.env.STAGE_NAMES_REGEX)) != -1)
 }
 
 function calculateRuntime(masterBuilds: Array<DroneBuild>) {
-  return (stages: Array<DroneBuildStage>) => {
+  return (stages: Array<DroneBuildStage>): Runtime => {
     // Some stages don't have build ids. I could probably filter out those stages as invalid earlier on, maybe the build itself should be considered invalid...
     //
     try {
       return {
         buildNumber: masterBuilds.find(masterBuild => masterBuild.id == stages[0].build_id).number,
-        runtimeInMinutes: stages.map(stage => stage.stopped - stage.started)
+        timeInMinutes: stages.map(stage => stage.stopped - stage.started)
           .reduce((partialSum, current) => partialSum + current, 0) / 60
       }
     } catch (err) {
@@ -101,7 +106,7 @@ function calculateRuntime(masterBuilds: Array<DroneBuild>) {
 
       return {
         buildNumber: BUILD_ERROR,
-        runtime: 0
+        timeInMinutes: 0
       }
     }
   }
@@ -113,9 +118,9 @@ export async function calculateRuntimes() {
   const stagePromises = masterBuilds.map(build => fetchBuildStages(build.number))
   const buildsStages = await Promise.all(stagePromises)
   const runtimes
-    = buildsStages.map(filterRspecRuntimes)
+    = buildsStages.map(filterStages)
       .map(calculateRuntime(masterBuilds))
-      .filter(runtime => runtime.buildNumber !== BUILD_ERROR && runtime.runtimeInMinutes !== 0 && runtime.runtimeInMinutes < RUNTIME_THRESHOLD)
+      .filter(runtime => runtime.buildNumber !== BUILD_ERROR && runtime.timeInMinutes !== 0 && runtime.timeInMinutes < RUNTIME_THRESHOLD)
 
   const writer = new CsvWriter(runtimes)
   await writer.toDisk('./runtimes.csv')
