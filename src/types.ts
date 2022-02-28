@@ -1,3 +1,9 @@
+// We use this number as a build id for failed builds
+export const BUILD_ERROR = -1
+// Any runtime over 1000 minutes will be seen as having failed
+// even if it completes successfully
+export const RUNTIME_THRESHOLD = 300
+
 export type DroneException = {
   message: string,
   name: string,
