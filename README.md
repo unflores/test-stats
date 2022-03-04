@@ -24,3 +24,9 @@ npx tsc && node dist/index.js
 ```
 
 4. Take generated csv `./runtimes.csv` and make a graph from it
+
+# Tests
+
+```
+npm run test
+```
