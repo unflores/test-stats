@@ -21,7 +21,7 @@ describe('#filterSpecifiedStages', () => {
     ]
     process.env.STAGE_NAMES_REGEX = 'tests'
 
-    expect(list.filterSpecifiedStages(stages)[0].name).toBe('teests')
+    expect(list.filterSpecifiedStages(stages)[0].name).toBe('tests')
     expect(list.filterSpecifiedStages(stages).length).toBe(1);
   })
 
