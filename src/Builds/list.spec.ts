@@ -13,27 +13,28 @@ function buildBuildStage(name: string): DroneBuildStage {
     version: 1
   }
 }
+describe('#filterSpecifiedStages', () => {
+  test('Removes stages NOT in the STAGE_NAMES_REGEX', () => {
+    const stages = [
+      buildBuildStage('tests'),
+      buildBuildStage('create')
+    ]
+    process.env.STAGE_NAMES_REGEX = 'tests'
 
-test('Only keeps stages in the STAGE_NAMES_REGEX', () => {
-  const stages = [
-    buildBuildStage('tests'),
-    buildBuildStage('create')
-  ]
-  process.env.STAGE_NAMES_REGEX = 'tests'
+    expect(list.filterSpecifiedStages(stages)[0].name).toBe('tests')
+    expect(list.filterSpecifiedStages(stages).length).toBe(1);
+  })
 
-  expect(list.filterSpecifiedStages(stages)[0].name).toBe('tests')
-  expect(list.filterSpecifiedStages(stages).length).toBe(1);
-})
+  test('Handles basic regex for filtering', () => {
+    const stages = [
+      buildBuildStage('tests'),
+      buildBuildStage('specs'),
+      buildBuildStage('create')
+    ]
+    process.env.STAGE_NAMES_REGEX = 'tests|specs'
 
-test('Handles basic regex for filtering', () => {
-  const stages = [
-    buildBuildStage('tests'),
-    buildBuildStage('specs'),
-    buildBuildStage('create')
-  ]
-  process.env.STAGE_NAMES_REGEX = 'tests|specs'
-
-  expect(list.filterSpecifiedStages(stages)[0].name).toBe('tests')
-  expect(list.filterSpecifiedStages(stages)[1].name).toBe('specs')
-  expect(list.filterSpecifiedStages(stages).length).toBe(2);
+    expect(list.filterSpecifiedStages(stages)[0].name).toBe('tests')
+    expect(list.filterSpecifiedStages(stages)[1].name).toBe('specs')
+    expect(list.filterSpecifiedStages(stages).length).toBe(2);
+  })
 })
