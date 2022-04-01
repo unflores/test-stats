@@ -2,7 +2,7 @@
 import * as logger from '../../logger'
 import CsvWriter from 'objects-to-csv'
 import * as ciClient from '../CiClient'
-import { filterSpecifiedStages, transformBuildToRuntime, removeOutliers } from './list'
+import { filterSpecifiedStages, transformBuildToRuntime, isRuntimeOutlier } from './list'
 
 export async function calculateRuntimes() {
   const masterBuilds = await ciClient.fetchMasterBuilds()
@@ -12,7 +12,7 @@ export async function calculateRuntimes() {
   const runtimes
     = buildsStages.map(filterSpecifiedStages)
       .map(transformBuildToRuntime(masterBuilds))
-      .filter(removeOutliers)
+      .filter(isRuntimeOutlier)
 
   const writer = new CsvWriter(runtimes)
   await writer.toDisk('./runtimes.csv')

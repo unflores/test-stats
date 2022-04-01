@@ -1,3 +1,4 @@
+import { getTextOfJSDocComment } from 'typescript'
 import * as logger from '../../logger'
 import { BUILD_ERROR, RUNTIME_THRESHOLD, DroneBuild, DroneBuildStage } from '../types'
 
@@ -6,7 +7,12 @@ type Runtime = {
   timeInMinutes: number
 }
 
-// Returns all stages that match the stage names we are timing
+/**
+ * Returns all stages that match the stage names we are timing
+ *
+ * @param  {Array<DroneBuildStage>} stages
+ * @returns Array
+ */
 export function filterSpecifiedStages(stages: Array<DroneBuildStage>): Array<DroneBuildStage> {
   return stages.filter(stage => stage.name.search(new RegExp(process.env.STAGE_NAMES_REGEX)) != -1)
 }
@@ -31,7 +37,12 @@ export function transformBuildToRuntime(masterBuilds: Array<DroneBuild>) {
     }
   }
 }
-
-export function removeOutliers(runtime: Runtime): Boolean {
+/**
+ * Return true if runtime passes a certain threshold
+ *
+ * @param  {Runtime} runtime
+ * @returns Boolean
+ */
+export function isRuntimeOutlier(runtime: Runtime): Boolean {
   return runtime.buildNumber !== BUILD_ERROR && runtime.timeInMinutes !== 0 && runtime.timeInMinutes < RUNTIME_THRESHOLD
 }
